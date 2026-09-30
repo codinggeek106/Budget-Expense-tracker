@@ -49,6 +49,13 @@ class PaymentListenerService : NotificationListenerService() {
                 )
             )
         }
+        // Separate job so a failure in the debug log can never drop a payment (and vice versa).
+        container.applicationScope.launch {
+            val payment = container.parserRegistry.parse(pkg, title, text, bigText, postedAt)
+            if (payment != null) {
+                container.recordPayment(payment)
+            }
+        }
     }
 
     companion object {

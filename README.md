@@ -12,7 +12,7 @@ See [`SPENDTRACK_SPEC.md`](SPENDTRACK_SPEC.md) for the full spec.
 |---|---|---|
 | 1 | Skeleton, notification listener, raw sample capture, setup screen | Built; needs on-device check |
 | 2 | Parsers | Skeleton + `AmountParser` done; per-app regexes waiting for real samples |
-| 3 | Data + dedupe | Not started |
+| 3 | Data + dedupe | Done: Room v2 (auto-migrates v1), repository, `Deduper`, `RecordPayment` |
 | 4 | Prompting | Not started |
 | 5 | Reports and budgets | Not started |
 | 6 | Stretch | Not started |
@@ -80,6 +80,21 @@ Parsers are written only against real notification text, never guessed formats.
 - `android:allowBackup="false"`, and data-extraction rules exclude all data from cloud backup and
   device transfer.
 - Copied samples are marked sensitive on Android 13+, so the clipboard preview hides them.
+
+## Data and duplicate handling
+
+- Money is stored as `Long` paise everywhere. `MonthRange` turns a calendar month in the phone's
+  time zone into a half-open `[start, end)` millis range for queries.
+- A detected payment is stored as `PENDING` unless it duplicates a stored transaction of any
+  status (so a prompt you ignored does not come back as a new row):
+  same amount and payee (trimmed, case-insensitive) within 2 minutes, or identical raw
+  notification text (SHA-256) within 10 minutes.
+- `RecordPayment` serialises check-then-insert with a mutex, so two copies of a notification
+  arriving at once can't both be inserted.
+- Month totals and category totals exclude `IGNORED` rows. `PENDING` rows count toward the total
+  and are grouped under a `null` ("Uncategorized") category.
+- Schema changes are migrations, never destructive: exported schemas live in `app/schemas/`, and
+  `MigrationTest` upgrades a real v1 database.
 
 ## Deviations from the spec
 

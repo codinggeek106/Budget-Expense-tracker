@@ -38,6 +38,8 @@ android {
         unitTests.all {
             // Robolectric's SDK 36 sandbox reaches into FileDescriptor internals on JDK 17+.
             it.jvmArgs("--add-opens=java.base/jdk.internal.access=ALL-UNNAMED")
+            // Migration tests build old database versions from the exported schemas.
+            it.systemProperty("room.schemaDir", "$projectDir/schemas")
         }
     }
 }
@@ -68,5 +70,4 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.ext.junit)
-    testImplementation(libs.androidx.room.testing)
 }
