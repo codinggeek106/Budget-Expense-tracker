@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">SpendTrack</string>
+    <string name="listener_label">SpendTrack payment detector</string>
+</resources>
