@@ -35,6 +35,14 @@ class TransactionRepository(
 
     fun observePendingCount(): Flow<Int> = transactionDao.observePendingCount()
 
+    suspend fun getPendingOlderThan(cutoff: Long): List<TransactionEntity> = transactionDao.getPendingOlderThan(cutoff)
+
+    suspend fun getTopCategories(limit: Int): List<String> = transactionDao.getTopCategories(limit)
+
+    suspend fun getUsedCategories(): List<String> = transactionDao.getUsedCategories()
+
+    fun observeUsedCategories(): Flow<List<String>> = transactionDao.observeUsedCategories()
+
     /** Returns false if the row no longer exists. */
     suspend fun categorize(id: Long, category: String, note: String? = null): Boolean =
         transactionDao.categorize(id, category, note) > 0

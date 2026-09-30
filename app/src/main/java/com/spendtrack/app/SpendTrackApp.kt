@@ -2,6 +2,8 @@ package com.spendtrack.app
 
 import android.app.Application
 import android.content.Context
+import com.spendtrack.app.system.NotificationChannels
+import com.spendtrack.app.system.PendingReminderWorker
 
 class SpendTrackApp : Application() {
 
@@ -11,6 +13,8 @@ class SpendTrackApp : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        NotificationChannels.create(this)
+        PendingReminderWorker.schedule(this)
     }
 }
 

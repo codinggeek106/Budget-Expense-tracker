@@ -6,7 +6,9 @@ import com.spendtrack.app.data.TransactionRepository
 import com.spendtrack.app.data.db.AppDatabase
 import com.spendtrack.app.data.db.RawNotificationDao
 import com.spendtrack.app.domain.parser.ParserRegistry
+import com.spendtrack.app.domain.usecase.Categorize
 import com.spendtrack.app.domain.usecase.RecordPayment
+import com.spendtrack.app.system.PromptNotifier
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +38,10 @@ class AppContainer(context: Context) {
     val parserRegistry: ParserRegistry = ParserRegistry.default()
 
     val recordPayment: RecordPayment by lazy { RecordPayment(transactionRepository) }
+
+    val promptNotifier: PromptNotifier by lazy { PromptNotifier(appContext, transactionRepository) }
+
+    val categorize: Categorize by lazy { Categorize(transactionRepository, promptNotifier::cancel) }
 
     private companion object {
         const val TAG = "SpendTrack"

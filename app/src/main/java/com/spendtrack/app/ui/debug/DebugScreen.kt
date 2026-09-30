@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,6 +28,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.spendtrack.app.data.db.RawNotificationEntity
 import com.spendtrack.app.domain.UpiApps
+import com.spendtrack.app.system.PendingReminderWorker
 import java.text.DateFormat
 import java.util.Date
 
@@ -87,24 +90,19 @@ fun DebugScreen(
             )
         },
     ) { padding ->
-        if (rows.isEmpty()) {
-            Box(Modifier.fillMaxSize().padding(padding).padding(32.dp), contentAlignment = Alignment.Center) {
-                Text(
-                    "Nothing captured yet.\n\nMake a UPI payment with GPay, PhonePe or Paytm and its " +
-                        "notification will show up here. Then tap \"Copy all\" and paste the result into " +
-                        "the sample files.",
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+        Column(Modifier.fillMaxSize().padding(padding)) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items(rows, key = { it.id }) { RawNotificationCard(it) }
+                OutlinedButton(onClick = viewModel::createTestPayment, modifier = Modifier.weight(1f)) {
+                    Text("Test prompt")
+                }
+                OutlinedButton(onClick = { PendingReminderWorker.runNow(context) }, modifier = Modifier.weight(1f)) {
+                    Text("Run reminder now")
+                }
             }
+            CapturedList(rows, Modifier.weight(1f))
         }
     }
 
@@ -121,6 +119,31 @@ fun DebugScreen(
             },
             dismissButton = { TextButton(onClick = { confirmClear = false }) { Text("Cancel") } },
         )
+    }
+}
+
+@Composable
+private fun CapturedList(rows: List<RawNotificationEntity>, modifier: Modifier = Modifier) {
+    Box(modifier) {
+        if (rows.isEmpty()) {
+            Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+                Text(
+                    "Nothing captured yet.\n\nMake a UPI payment with GPay, PhonePe or Paytm and its " +
+                        "notification will show up here. Then tap \"Copy all\" and paste the result into " +
+                        "the sample files.",
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(rows, key = { it.id }) { RawNotificationCard(it) }
+            }
+        }
     }
 }
 

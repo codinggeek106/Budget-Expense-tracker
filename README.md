@@ -13,7 +13,7 @@ See [`SPENDTRACK_SPEC.md`](SPENDTRACK_SPEC.md) for the full spec.
 | 1 | Skeleton, notification listener, raw sample capture, setup screen | Built; needs on-device check |
 | 2 | Parsers | Skeleton + `AmountParser` done; per-app regexes waiting for real samples |
 | 3 | Data + dedupe | Done: Room v2 (auto-migrates v1), repository, `Deduper`, `RecordPayment` |
-| 4 | Prompting | Not started |
+| 4 | Prompting | Done: heads-up prompt, category buttons, picker, reminder worker, Pending screen |
 | 5 | Reports and budgets | Not started |
 | 6 | Stretch | Not started |
 
@@ -39,7 +39,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 Or copy the APK to the phone and open it (allow "Install unknown apps" for your file manager).
 
 Toolchain: Gradle 9.8.0, AGP 9.4.1 (built-in Kotlin), Kotlin 2.4.20, KSP 2.3.12, Compose BOM
-2026.09.00, Room 2.8.5. compileSdk/targetSdk 37, minSdk 29. Versions live in
+2026.09.00, Room 2.8.5, WorkManager 2.12.0. compileSdk/targetSdk 37, minSdk 29. Versions live in
 `gradle/libs.versions.toml`.
 
 ## Phone setup (HyperOS / MIUI)
@@ -73,6 +73,29 @@ Parsers are written only against real notification text, never guessed formats.
    `app/src/test/resources/samples/{gpay,phonepe,paytm}.txt`, and fill in each `expect:` line.
    The format is described in `app/src/test/resources/samples/README.md`.
 
+## Payment prompts (Phase 4)
+
+- Each new PENDING payment posts a heads-up notification on the `payment_prompt` channel:
+  *Paid ₹250 to &lt;payee&gt;* / *What was this for?*, with your 3 most-used categories as buttons
+  (Food, Travel, Bills until you have history). Tapping a button saves the category and dismisses
+  the prompt. Tapping the notification opens the full picker (all categories, a custom one via
+  *Other…*, and a note), which can also ignore the payment.
+- A WorkManager job runs every 30 minutes and re-posts prompts for payments still PENDING after
+  10 minutes. HyperOS may delay it further unless battery saver is set to *No restrictions*.
+- The **Pending** screen (the home screen once notification access is on) lists uncategorized
+  payments: tap one to categorize, or × to ignore it. The gear icon opens Setup.
+
+### Testing prompts before the parsers exist
+
+Setup → *Captured notifications (debug)* has two buttons:
+
+- **Test prompt** stores a fake PENDING payment (payee *Test payment HH:mm:ss*, source *Test*)
+  and shows its prompt. Try a category button, the picker, and Ignore.
+- **Run reminder now** re-posts prompts for every PENDING payment immediately instead of
+  waiting 30 minutes. Swipe a prompt away (Android 14+ allows it), tap this, and it comes back.
+
+Test payments are real rows. Ignore them when you're done so they don't count in reports.
+
 ## Privacy and data
 
 - No `INTERNET` permission. The manifest also strips it (`tools:node="remove"`) in case a library
@@ -104,6 +127,15 @@ Parsers are written only against real notification text, never guessed formats.
   `requestRebind`.
 - **Raw log**: if a notification has no `EXTRA_BIG_TEXT` but has inbox-style `EXTRA_TEXT_LINES`,
   those lines are stored in `bigText` so the sample isn't lost.
+- **Full-screen intent**: attached only when `canUseFullScreenIntent()` allows it (Android 14+ may
+  deny it to non-calling apps). Without it the heads-up notification is the prompt. The picker
+  doesn't show over the lock screen, so payment details stay hidden until you unlock.
+- **Dismissable prompts**: Android 14+ lets users swipe away `setOngoing(true)` notifications.
+  The reminder worker brings back any that are still PENDING.
+- **Lock-screen privacy**: prompts are `VISIBILITY_PRIVATE`; the lock screen shows *New payment to
+  categorize* without the amount or payee.
+- **`ACCESS_NETWORK_STATE`** is merged in by WorkManager and left in place (it can't reach the
+  network without `INTERNET`); stripping it risks WorkManager crashes.
 - **Robolectric on JDK 17+** needs `--add-opens=java.base/jdk.internal.access=ALL-UNNAMED` for the
   SDK 36 sandbox (set in `app/build.gradle.kts`). Robolectric tests run against SDK 36, the newest
   it supports.

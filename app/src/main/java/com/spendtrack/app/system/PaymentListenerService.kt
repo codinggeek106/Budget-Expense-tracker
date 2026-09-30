@@ -8,6 +8,7 @@ import android.service.notification.StatusBarNotification
 import com.spendtrack.app.appContainer
 import com.spendtrack.app.data.db.RawNotificationEntity
 import com.spendtrack.app.domain.UpiApps
+import com.spendtrack.app.domain.usecase.RecordPayment
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -53,7 +54,10 @@ class PaymentListenerService : NotificationListenerService() {
         container.applicationScope.launch {
             val payment = container.parserRegistry.parse(pkg, title, text, bigText, postedAt)
             if (payment != null) {
-                container.recordPayment(payment)
+                val result = container.recordPayment(payment)
+                if (result is RecordPayment.Result.Recorded) {
+                    container.promptNotifier.prompt(result.id)
+                }
             }
         }
     }

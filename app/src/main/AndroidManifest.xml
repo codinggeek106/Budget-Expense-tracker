@@ -3,13 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Best-effort: lets the category picker open straight away. Android 14 may deny it. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
-    <!-- Fully offline: strip INTERNET/network-state if any dependency tries to merge them in. -->
+    <!-- Fully offline: strip INTERNET if any dependency ever tries to merge it in. -->
     <uses-permission
         android:name="android.permission.INTERNET"
-        tools:node="remove" />
-    <uses-permission
-        android:name="android.permission.ACCESS_NETWORK_STATE"
         tools:node="remove" />
 
     <application
@@ -34,6 +33,16 @@
             </intent-filter>
         </activity>
 
+        <!-- Own empty task so it pops up over whatever app is open and leaves no recents entry. -->
+        <activity
+            android:name=".ui.CategorizeActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/Theme.SpendTrack.Dialog"
+            android:windowSoftInputMode="adjustResize" />
+
         <service
             android:name=".system.PaymentListenerService"
             android:exported="true"
@@ -43,5 +52,9 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
+
+        <receiver
+            android:name=".system.CategoryActionReceiver"
+            android:exported="false" />
     </application>
 </manifest>

@@ -79,7 +79,7 @@ private const val PREFS = "setup_checklist"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PermissionScreen(onOpenDebug: () -> Unit, modifier: Modifier = Modifier) {
+fun PermissionScreen(onOpenDebug: () -> Unit, onDone: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var status by remember { mutableStateOf(SetupStatus.read(context)) }
     LifecycleResumeEffect(Unit) {
@@ -192,6 +192,10 @@ fun PermissionScreen(onOpenDebug: () -> Unit, modifier: Modifier = Modifier) {
             }
 
             item {
+                Button(
+                    onClick = onDone,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                ) { Text("Continue to app") }
                 OutlinedButton(
                     onClick = onOpenDebug,
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),

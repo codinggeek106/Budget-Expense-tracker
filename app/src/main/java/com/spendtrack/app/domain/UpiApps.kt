@@ -12,6 +12,8 @@ object UpiApps {
         GPAY -> "GPay"
         PHONEPE -> "PhonePe"
         PAYTM -> "Paytm"
+        "manual" -> "Cash"
+        "debug.test" -> "Test"
         else -> pkg
     }
 }

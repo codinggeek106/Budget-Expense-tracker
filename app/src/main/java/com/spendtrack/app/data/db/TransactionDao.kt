@@ -51,6 +51,23 @@ interface TransactionDao {
     @Query("SELECT COUNT(*) FROM transactions WHERE status = 'PENDING'")
     fun observePendingCount(): Flow<Int>
 
+    /** PENDING rows paid at or before [cutoff], oldest first. */
+    @Query("SELECT * FROM transactions WHERE status = 'PENDING' AND timestamp <= :cutoff ORDER BY timestamp, id")
+    suspend fun getPendingOlderThan(cutoff: Long): List<TransactionEntity>
+
+    /** Most frequently chosen categories, ties broken by most recent use. */
+    @Query(
+        "SELECT category FROM transactions WHERE status = 'CATEGORIZED' AND category IS NOT NULL " +
+            "GROUP BY category ORDER BY COUNT(*) DESC, MAX(timestamp) DESC LIMIT :limit"
+    )
+    suspend fun getTopCategories(limit: Int): List<String>
+
+    @Query("SELECT DISTINCT category FROM transactions WHERE category IS NOT NULL")
+    suspend fun getUsedCategories(): List<String>
+
+    @Query("SELECT DISTINCT category FROM transactions WHERE category IS NOT NULL")
+    fun observeUsedCategories(): Flow<List<String>>
+
     /** Sets the category (and note, if given) and marks the row CATEGORIZED. Returns rows updated. */
     @Query(
         "UPDATE transactions SET category = :category, note = COALESCE(:note, note), status = 'CATEGORIZED' " +
