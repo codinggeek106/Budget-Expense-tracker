@@ -11,7 +11,7 @@ See [`SPENDTRACK_SPEC.md`](SPENDTRACK_SPEC.md) for the full spec.
 | Phase | Scope | State |
 |---|---|---|
 | 1 | Skeleton, notification listener, raw sample capture, setup screen | Built; needs on-device check |
-| 2 | Parsers | Waiting for real notification samples |
+| 2 | Parsers | Skeleton + `AmountParser` done; per-app regexes waiting for real samples |
 | 3 | Data + dedupe | Not started |
 | 4 | Prompting | Not started |
 | 5 | Reports and budgets | Not started |

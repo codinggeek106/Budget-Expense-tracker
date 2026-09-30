@@ -3,6 +3,7 @@ package com.spendtrack.app
 import android.content.Context
 import com.spendtrack.app.data.db.AppDatabase
 import com.spendtrack.app.data.db.RawNotificationDao
+import com.spendtrack.app.domain.parser.ParserRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -18,4 +19,6 @@ class AppContainer(context: Context) {
     val database: AppDatabase by lazy { AppDatabase.build(appContext) }
 
     val rawNotificationDao: RawNotificationDao get() = database.rawNotificationDao()
+
+    val parserRegistry: ParserRegistry = ParserRegistry.default()
 }
