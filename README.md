@@ -14,7 +14,7 @@ See [`SPENDTRACK_SPEC.md`](SPENDTRACK_SPEC.md) for the full spec.
 | 2 | Parsers | Skeleton + `AmountParser` done; per-app regexes waiting for real samples |
 | 3 | Data + dedupe | Done: Room v2 (auto-migrates v1), repository, `Deduper`, `RecordPayment` |
 | 4 | Prompting | Done: heads-up prompt, category buttons, picker, reminder worker, Pending screen |
-| 5 | Reports and budgets | Not started |
+| 5 | Reports and budgets | Done: Dashboard, History, Budget, cash entry, bottom navigation |
 | 6 | Stretch | Not started |
 
 ## Build
@@ -95,6 +95,23 @@ Setup → *Captured notifications (debug)* has two buttons:
   waiting 30 minutes. Swipe a prompt away (Android 14+ allows it), tap this, and it comes back.
 
 Test payments are real rows. Ignore them when you're done so they don't count in reports.
+
+## Screens (Phase 5)
+
+Bottom navigation: **Dashboard**, **Pending** (badge = payments waiting for a category),
+**History**, **Budget**. Setup is behind the gear icon on Dashboard and Pending.
+
+- **Dashboard**: month picker (can't go past the current month), total spent, how much is still
+  uncategorized, spend per category as a bar chart, top 5 payees, and budget vs actual. A budget
+  bar turns red once spend goes over 100% of the limit. *+ Cash* adds a cash payment.
+- **History**: every payment in the month, including ignored ones (struck through). Tap a row
+  to change its category or note; swipe left to ignore it (with Undo).
+- **Budget**: tap a category to set or remove its monthly limit. Shows this month's spend.
+- **Add cash payment**: amount, payee (defaults to *Cash*), date (today or earlier), category,
+  note. Stored as `appPkg = "manual"`, already categorized.
+
+All dashboard figures come from one list of the month's transactions (`MonthlySummary.from`),
+excluding ignored ones, so the category totals always add up to the month total.
 
 ## Privacy and data
 

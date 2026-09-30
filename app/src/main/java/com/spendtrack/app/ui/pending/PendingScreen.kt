@@ -35,6 +35,7 @@ import com.spendtrack.app.data.db.TransactionEntity
 import com.spendtrack.app.domain.UpiApps
 import com.spendtrack.app.domain.model.Money
 import com.spendtrack.app.ui.CategorizeActivity
+import com.spendtrack.app.ui.components.TabContentInsets
 import com.spendtrack.app.ui.format.formatDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,6 +50,7 @@ fun PendingScreen(
 
     Scaffold(
         modifier = modifier,
+        contentWindowInsets = TabContentInsets,
         topBar = {
             TopAppBar(
                 title = { Text("Pending") },
