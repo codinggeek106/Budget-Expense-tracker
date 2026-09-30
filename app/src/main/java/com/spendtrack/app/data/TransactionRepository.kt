@@ -49,6 +49,10 @@ class TransactionRepository(
 
     suspend fun setStatus(id: Long, status: TxnStatus): Boolean = transactionDao.setStatus(id, status) > 0
 
+    /** Restores an ignored row: CATEGORIZED if it already had a category, otherwise PENDING. */
+    suspend fun unignore(transaction: TransactionEntity): Boolean =
+        setStatus(transaction.id, if (transaction.category != null) TxnStatus.CATEGORIZED else TxnStatus.PENDING)
+
     fun observeBudgets(): Flow<List<BudgetEntity>> = budgetDao.observeAll()
 
     suspend fun setBudget(category: String, monthlyLimitPaise: Long) =
