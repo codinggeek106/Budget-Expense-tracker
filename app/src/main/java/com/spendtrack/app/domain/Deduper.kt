@@ -2,6 +2,7 @@ package com.spendtrack.app.domain
 
 import com.spendtrack.app.data.db.TransactionEntity
 import com.spendtrack.app.domain.model.ParsedPayment
+import com.spendtrack.app.domain.model.Payee
 import java.security.MessageDigest
 import kotlin.math.abs
 
@@ -19,7 +20,7 @@ object Deduper {
     /** How far either side of a payment to fetch candidates from the database. */
     const val LOOKUP_WINDOW_MS = SAME_TEXT_WINDOW_MS
 
-    fun normalizePayee(payee: String): String = payee.trim().lowercase()
+    fun normalizePayee(payee: String): String = Payee.normalize(payee)
 
     fun rawTextHash(rawText: String): String =
         MessageDigest.getInstance("SHA-256")

@@ -13,6 +13,13 @@ object Money {
         return if (fraction == 0L) "$sign₹$rupees" else "$sign₹$rupees.${fraction.toString().padStart(2, '0')}"
     }
 
+    /** Paise -> "1250.50": always two decimals, no symbol or grouping. For files, not screens. */
+    fun plain(paise: Long): String {
+        val sign = if (paise < 0) "-" else ""
+        val magnitude = abs(paise)
+        return "$sign${magnitude / 100}.${(magnitude % 100).toString().padStart(2, '0')}"
+    }
+
     /** 1234567 -> 12,34,567: last three digits, then groups of two. */
     private fun groupIndian(digits: String): String {
         if (digits.length <= 3) return digits

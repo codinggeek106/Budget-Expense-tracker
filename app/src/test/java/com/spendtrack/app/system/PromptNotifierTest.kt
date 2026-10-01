@@ -44,10 +44,14 @@ class PromptNotifierTest {
     @After
     fun tearDown() = db.close()
 
-    private suspend fun insert(category: String? = null, status: TxnStatus = TxnStatus.PENDING) = repository.insert(
+    private suspend fun insert(
+        category: String? = null,
+        status: TxnStatus = TxnStatus.PENDING,
+        payee: String = "Ramesh Kumar",
+    ) = repository.insert(
         TransactionEntity(
             amountPaise = 125_050,
-            payee = "Ramesh Kumar",
+            payee = payee,
             category = category,
             timestamp = 1_000,
             appPkg = "com.phonepe.app",
@@ -103,8 +107,9 @@ class PromptNotifierTest {
 
     @Test
     fun actionsUseMostFrequentCategories() = runTest {
-        repeat(3) { insert(category = "Groceries", status = TxnStatus.CATEGORIZED) }
-        repeat(2) { insert(category = "Rent", status = TxnStatus.CATEGORIZED) }
+        // Different payee, so no same-payee suggestion applies; this checks frequency alone.
+        repeat(3) { insert(category = "Groceries", status = TxnStatus.CATEGORIZED, payee = "Shop") }
+        repeat(2) { insert(category = "Rent", status = TxnStatus.CATEGORIZED, payee = "Landlord") }
         val id = insert()
         notifier.prompt(id)
         assertEquals(listOf("Groceries", "Rent", "Food"), posted().single().actions.map { it.title.toString() })

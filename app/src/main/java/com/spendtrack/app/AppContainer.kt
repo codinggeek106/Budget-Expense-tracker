@@ -8,10 +8,12 @@ import com.spendtrack.app.data.db.RawNotificationDao
 import com.spendtrack.app.domain.parser.ParserRegistry
 import com.spendtrack.app.domain.usecase.AddManualTransaction
 import com.spendtrack.app.domain.usecase.Categorize
+import com.spendtrack.app.domain.usecase.ExportCsv
 import com.spendtrack.app.domain.usecase.GetMonthlySummary
 import com.spendtrack.app.domain.usecase.RecordPayment
 import com.spendtrack.app.domain.usecase.SetBudget
 import com.spendtrack.app.system.PromptNotifier
+import com.spendtrack.app.ui.theme.ThemePreferences
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -51,6 +53,10 @@ class AppContainer(context: Context) {
     val setBudget: SetBudget by lazy { SetBudget(transactionRepository) }
 
     val addManualTransaction: AddManualTransaction by lazy { AddManualTransaction(transactionRepository) }
+
+    val exportCsv: ExportCsv by lazy { ExportCsv(transactionRepository) }
+
+    val themePreferences: ThemePreferences by lazy { ThemePreferences(appContext) }
 
     private companion object {
         const val TAG = "SpendTrack"

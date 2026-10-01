@@ -6,6 +6,7 @@ import com.spendtrack.app.data.db.CategoryTotal
 import com.spendtrack.app.data.db.TransactionDao
 import com.spendtrack.app.data.db.TransactionEntity
 import com.spendtrack.app.domain.model.MonthRange
+import com.spendtrack.app.domain.model.Payee
 import com.spendtrack.app.domain.model.TxnStatus
 import kotlinx.coroutines.flow.Flow
 
@@ -42,6 +43,17 @@ class TransactionRepository(
     suspend fun getUsedCategories(): List<String> = transactionDao.getUsedCategories()
 
     fun observeUsedCategories(): Flow<List<String>> = transactionDao.observeUsedCategories()
+
+    /** Category last chosen for this payee (case and surrounding spaces ignored), if any. */
+    suspend fun getLastCategoryForPayee(payee: String): String? =
+        transactionDao.getLastCategoryForPayee(Payee.normalize(payee))
+
+    /** Every row in [range] (any status), oldest first. */
+    suspend fun getMonth(range: MonthRange): List<TransactionEntity> =
+        transactionDao.getInRange(range.startMillis, range.endMillis)
+
+    /** Every row ever stored (any status), oldest first. */
+    suspend fun getAll(): List<TransactionEntity> = transactionDao.getAll()
 
     /** Returns false if the row no longer exists. */
     suspend fun categorize(id: Long, category: String, note: String? = null): Boolean =

@@ -9,6 +9,7 @@ import com.spendtrack.app.appContainer
 import com.spendtrack.app.data.TransactionRepository
 import com.spendtrack.app.data.db.TransactionEntity
 import com.spendtrack.app.domain.model.Category
+import com.spendtrack.app.domain.model.TxnStatus
 import com.spendtrack.app.domain.usecase.Categorize
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,7 +22,8 @@ import kotlinx.coroutines.launch
 sealed interface TxnLoad {
     data object Loading : TxnLoad
     data object Missing : TxnLoad
-    data class Loaded(val txn: TransactionEntity) : TxnLoad
+    /** [suggestion] is the category last used for this payee, offered only while the payment is PENDING. */
+    data class Loaded(val txn: TransactionEntity, val suggestion: String? = null) : TxnLoad
 }
 
 class CategorizeViewModel(
@@ -39,7 +41,13 @@ class CategorizeViewModel(
 
     init {
         viewModelScope.launch {
-            _txn.value = repository.getById(txnId)?.let(TxnLoad::Loaded) ?: TxnLoad.Missing
+            val txn = repository.getById(txnId)
+            _txn.value = if (txn == null) {
+                TxnLoad.Missing
+            } else {
+                val suggestion = if (txn.status == TxnStatus.PENDING) repository.getLastCategoryForPayee(txn.payee) else null
+                TxnLoad.Loaded(txn, suggestion)
+            }
         }
     }
 

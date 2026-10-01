@@ -1,3 +1,5 @@
 <resources>
     <color name="ic_launcher_background">#1B5E20</color>
+    <!-- Window background shown before Compose draws; matches the theme's background. -->
+    <color name="window_background">#F6FBF3</color>
 </resources>

@@ -15,7 +15,7 @@ See [`SPENDTRACK_SPEC.md`](SPENDTRACK_SPEC.md) for the full spec.
 | 3 | Data + dedupe | Done: Room v2 (auto-migrates v1), repository, `Deduper`, `RecordPayment` |
 | 4 | Prompting | Done: heads-up prompt, category buttons, picker, reminder worker, Pending screen |
 | 5 | Reports and budgets | Done: Dashboard, History, Budget, cash entry, bottom navigation |
-| 6 | Stretch | Not started |
+| 6 | Stretch | Done: CSV export, last-used category suggestions, dark theme and appearance settings |
 
 ## Build
 
@@ -112,6 +112,22 @@ Bottom navigation: **Dashboard**, **Pending** (badge = payments waiting for a ca
 
 All dashboard figures come from one list of the month's transactions (`MonthlySummary.from`),
 excluding ignored ones, so the category totals always add up to the month total.
+
+## Extras (Phase 6)
+
+- **CSV export**: History → ⋮ → *Export this month* or *Export everything*. Android's file picker
+  asks where to save (Downloads, Drive, etc.), so the app needs no storage permission. Columns:
+  `id, date, time, amount_inr, payee, category, status, source, note`. UTF-8 with a BOM so Excel
+  reads non-English names correctly; RFC 4180 quoting; text that a spreadsheet would run as a
+  formula (starting with `=`, `+`, `-`, `@`) is prefixed with `'`. Raw notification text is not
+  exported. Ignored payments are included with `status = IGNORED` so you can filter them.
+- **Same-payee suggestions**: when you pay someone you've categorized before, the prompt puts that
+  category first and says *Last time: Food*, the picker preselects it, and the Pending list shows a
+  one-tap *Food?* chip. It's only a suggestion; nothing is categorized without a tap.
+- **Appearance** (Setup → Appearance): System / Light / Dark, and *Wallpaper colors* on Android 12+.
+  With wallpaper colors off the app uses its own green palette, tuned for both light and dark.
+  Status-bar icons follow the app's theme, and the launch window is dark in dark mode (no white
+  flash).
 
 ## Privacy and data
 
