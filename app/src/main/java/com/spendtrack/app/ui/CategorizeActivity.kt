@@ -45,7 +45,7 @@ import com.spendtrack.app.domain.model.Category
 import com.spendtrack.app.domain.model.Money
 import com.spendtrack.app.domain.model.TxnStatus
 import com.spendtrack.app.ui.format.formatDateTime
-import com.spendtrack.app.ui.theme.SpendTrackTheme
+import com.spendtrack.app.ui.theme.SpendTrackAppTheme
 
 /** Small floating picker: full category list, custom category, and note for one transaction. */
 class CategorizeActivity : ComponentActivity() {
@@ -60,7 +60,7 @@ class CategorizeActivity : ComponentActivity() {
             return
         }
         setContent {
-            SpendTrackTheme {
+            SpendTrackAppTheme {
                 val id = txnId
                 val vm: CategorizeViewModel = viewModel(key = "txn-$id", factory = CategorizeViewModel.factory(id))
                 CategorizeCard(vm, onClose = ::finish)
@@ -105,6 +105,7 @@ private fun CategorizeCard(vm: CategorizeViewModel, onClose: () -> Unit) {
             }
             is TxnLoad.Loaded -> CategorizeForm(
                 txn = state.txn,
+                suggestion = state.suggestion,
                 choices = choices,
                 onSave = { category, note -> vm.save(category, note, onClose) },
                 onIgnore = { vm.ignore(onClose) },
@@ -117,11 +118,12 @@ private fun CategorizeCard(vm: CategorizeViewModel, onClose: () -> Unit) {
 @Composable
 private fun CategorizeForm(
     txn: TransactionEntity,
+    suggestion: String?,
     choices: List<String>,
     onSave: (category: String, note: String) -> Unit,
     onIgnore: () -> Unit,
 ) {
-    var selected by rememberSaveable(txn.id) { mutableStateOf(txn.category) }
+    var selected by rememberSaveable(txn.id) { mutableStateOf(txn.category ?: suggestion) }
     var custom by rememberSaveable(txn.id) { mutableStateOf("") }
     var note by rememberSaveable(txn.id) { mutableStateOf(txn.note.orEmpty()) }
     var saving by rememberSaveable(txn.id) { mutableStateOf(false) }
@@ -149,6 +151,13 @@ private fun CategorizeForm(
         }
 
         Text("What was this for?", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
+        if (suggestion != null) {
+            Text(
+                "Last time you paid ${txn.payee}: $suggestion",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             choices.forEach { category ->
                 FilterChip(

@@ -8,11 +8,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,7 +35,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.spendtrack.app.data.db.TransactionEntity
 import com.spendtrack.app.domain.UpiApps
 import com.spendtrack.app.domain.model.Money
 import com.spendtrack.app.ui.CategorizeActivity
@@ -77,11 +80,12 @@ fun PendingScreen(
                 contentPadding = PaddingValues(12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items(rows, key = { it.id }) { txn ->
+                items(rows, key = { it.txn.id }) { item ->
                     PendingRow(
-                        txn = txn,
-                        onOpen = { context.startActivity(CategorizeActivity.intent(context, txn.id)) },
-                        onIgnore = { viewModel.ignore(txn.id) },
+                        item = item,
+                        onOpen = { context.startActivity(CategorizeActivity.intent(context, item.txn.id)) },
+                        onApplySuggestion = { viewModel.applySuggestion(item) },
+                        onIgnore = { viewModel.ignore(item.txn.id) },
                     )
                 }
             }
@@ -90,7 +94,13 @@ fun PendingScreen(
 }
 
 @Composable
-private fun PendingRow(txn: TransactionEntity, onOpen: () -> Unit, onIgnore: () -> Unit) {
+private fun PendingRow(
+    item: PendingItem,
+    onOpen: () -> Unit,
+    onApplySuggestion: () -> Unit,
+    onIgnore: () -> Unit,
+) {
+    val txn = item.txn
     Card(onClick = onOpen, modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
@@ -104,6 +114,14 @@ private fun PendingRow(txn: TransactionEntity, onOpen: () -> Unit, onIgnore: () 
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                item.suggestion?.let { category ->
+                    AssistChip(
+                        onClick = onApplySuggestion,
+                        label = { Text("$category?") },
+                        leadingIcon = { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(AssistChipDefaults.IconSize)) },
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
             }
             IconButton(onClick = onIgnore) { Icon(Icons.Filled.Close, contentDescription = "Ignore") }
         }

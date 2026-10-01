@@ -101,7 +101,7 @@ fun PermissionScreen(onOpenDebug: () -> Unit, onDone: () -> Unit, modifier: Modi
 
     Scaffold(
         modifier = modifier,
-        topBar = { TopAppBar(title = { Text("SpendTrack setup") }) },
+        topBar = { TopAppBar(title = { Text("Setup and settings") }) },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
@@ -165,6 +165,8 @@ fun PermissionScreen(onOpenDebug: () -> Unit, onDone: () -> Unit, modifier: Modi
                     }
                 }
             }
+
+            item { AppearanceCard() }
 
             item {
                 Text(

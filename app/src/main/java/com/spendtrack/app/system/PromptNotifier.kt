@@ -35,17 +35,23 @@ class PromptNotifier(
     /** Prompts for [txnId] if it is still PENDING. */
     suspend fun prompt(txnId: Long) {
         val txn = repository.getById(txnId)?.takeIf { it.status == TxnStatus.PENDING } ?: return
-        show(txn, Category.promptChoices(repository.getTopCategories(ACTION_COUNT)))
+        promptAll(listOf(txn))
     }
 
     suspend fun promptAll(transactions: List<TransactionEntity>) {
         if (transactions.isEmpty()) return
-        val choices = Category.promptChoices(repository.getTopCategories(ACTION_COUNT))
-        transactions.forEach { show(it, choices) }
+        val top = repository.getTopCategories(ACTION_COUNT)
+        transactions.forEach { txn ->
+            val suggestion = repository.getLastCategoryForPayee(txn.payee)
+            show(txn, Category.promptChoices(listOfNotNull(suggestion) + top), suggestion)
+        }
     }
 
-    /** Posts (or re-posts) the prompt. Returns false if notifications aren't allowed. */
-    fun show(txn: TransactionEntity, choices: List<String>): Boolean {
+    /**
+     * Posts (or re-posts) the prompt. [suggestion] is the category last used for this payee; it
+     * should already be the first of [choices]. Returns false if notifications aren't allowed.
+     */
+    fun show(txn: TransactionEntity, choices: List<String>, suggestion: String? = null): Boolean {
         if (!canPost()) return false
 
         val amount = Money.format(txn.amountPaise)
@@ -59,7 +65,7 @@ class PromptNotifier(
         val builder = NotificationCompat.Builder(context, NotificationChannels.PAYMENT_PROMPT)
             .setSmallIcon(R.drawable.ic_stat_rupee)
             .setContentTitle("Paid $amount to ${txn.payee}")
-            .setContentText("What was this for?")
+            .setContentText(if (suggestion != null) "What was this for? Last time: $suggestion" else "What was this for?")
             .setSubText(UpiApps.label(txn.appPkg))
             .setWhen(txn.timestamp)
             .setShowWhen(true)

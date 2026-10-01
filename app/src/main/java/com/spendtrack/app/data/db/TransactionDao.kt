@@ -65,6 +65,23 @@ interface TransactionDao {
     @Query("SELECT DISTINCT category FROM transactions WHERE category IS NOT NULL")
     suspend fun getUsedCategories(): List<String>
 
+    /**
+     * The category most recently chosen for [normalizedPayee] (trimmed, lowercased; see
+     * Deduper.normalizePayee). SQLite's LOWER only folds ASCII, which covers UPI payee names.
+     */
+    @Query(
+        "SELECT category FROM transactions WHERE status = 'CATEGORIZED' AND category IS NOT NULL " +
+            "AND LOWER(TRIM(payee)) = :normalizedPayee ORDER BY timestamp DESC, id DESC LIMIT 1"
+    )
+    suspend fun getLastCategoryForPayee(normalizedPayee: String): String?
+
+    /** Rows in [start, end), oldest first; for export. */
+    @Query("SELECT * FROM transactions WHERE timestamp >= :start AND timestamp < :end ORDER BY timestamp, id")
+    suspend fun getInRange(start: Long, end: Long): List<TransactionEntity>
+
+    @Query("SELECT * FROM transactions ORDER BY timestamp, id")
+    suspend fun getAll(): List<TransactionEntity>
+
     @Query("SELECT DISTINCT category FROM transactions WHERE category IS NOT NULL")
     fun observeUsedCategories(): Flow<List<String>>
 

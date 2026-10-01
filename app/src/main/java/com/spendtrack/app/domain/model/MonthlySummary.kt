@@ -2,7 +2,6 @@ package com.spendtrack.app.domain.model
 
 import com.spendtrack.app.data.db.BudgetEntity
 import com.spendtrack.app.data.db.TransactionEntity
-import com.spendtrack.app.domain.Deduper
 
 /** Spend in one category. [category] is null for payments still waiting for a category. */
 data class CategorySpend(val category: String?, val totalPaise: Long, val count: Int)
@@ -48,7 +47,7 @@ data class MonthlySummary(
                 .sortedWith(compareByDescending<CategorySpend> { it.totalPaise }.thenBy { it.category ?: "￿" })
 
             val topPayees = counted
-                .groupBy { Deduper.normalizePayee(it.payee) }
+                .groupBy { Payee.normalize(it.payee) }
                 .map { (_, rows) ->
                     // Show the spelling used most often for this payee.
                     val name = rows.groupingBy { it.payee.trim() }.eachCount().maxBy { it.value }.key
